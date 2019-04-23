@@ -1,0 +1,21 @@
+INDEX VERSION 1.131+/Users/mariacharles/eclipse-workspace/.metadata/.plugins/org.eclipse.jdt.core
+3459828603.index
+288112982.index
+1809548371.index
+3607966514.index
+1271342938.index
+1977323588.index
+941210201.index
+2300330006.index
+4190343708.index
+338626639.index
+3766893981.index
+2254170629.index
+1654975474.index
+4061796439.index
+1624768958.index
+1144384042.index
+1653335996.index
+2723170652.index
+4101167580.index
+1241710292.index

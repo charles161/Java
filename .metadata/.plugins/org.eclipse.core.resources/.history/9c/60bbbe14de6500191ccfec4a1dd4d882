@@ -1,0 +1,98 @@
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
+import edu.princeton.cs.algs4.StdIn;
+import edu.princeton.cs.algs4.StdOut;
+
+public class Percolation {
+		private int nOpenSites=0;
+		private int n=0;
+		private int[] id;
+		WeightedQuickUnionUF uf;
+		
+		 public Percolation(int a) {// create n-by-n grid, with all sites blocked
+			 int c=(a*a)+2;
+				n=a;
+				uf = new WeightedQuickUnionUF(c);
+				this.id = new int[c];
+				for(int i=0;i<c;i++) {
+					this.id[i]=0;
+				}
+		  }
+		
+		private int mapXYto1D(int a, int b) { 
+			return ((n*a)-(n-b));
+		}
+		
+		private int random() {
+			return 0;
+		}
+		private void error(int row,int col) {
+			if(row>n || col>n || row<1 || col<1) throw new IllegalArgumentException("Boundary conditions exceeded");
+		}
+		
+		private void union(int row,int col, int a,int b) {
+			uf.union(this.mapXYto1D(row, col), this.mapXYto1D(row+a, row+b));
+		}
+	 
+	   public void open(int row, int col) {    // open site (row, col) if it is not open already
+		   error(row,col);
+		   nOpenSites++;
+		   int b=this.mapXYto1D(row, col);
+		   if(id[b]==0) {
+			   id[b]=1; 
+		   }
+		   if(b<=n) {
+			   uf.union(0,b);
+		   }else if(b<=n*n && b>n*(n-1)) {
+			   uf.union(n*n+1, b);
+		   }
+		   if(row+1<=n && id[this.mapXYto1D(row+1, col)]==1) {
+			   union(row,col,1,0);
+		   }
+		   if(col+1<=n && id[this.mapXYto1D(row, col+1)]==1) {
+			   union(row,col,0,1);
+		   }
+		   if(row-1>1 && id[this.mapXYto1D(row-1, col)]==1) {
+			   union(row,col,-1,0);
+		   }
+		   if(col-1>1 && id[this.mapXYto1D(row, col-1)]==1) {
+			   union(row,col,0,-1);
+		   }
+	   }
+	   
+	   public boolean isOpen(int row, int col) {  // is site (row, col) open?
+		   error(row,col);
+		   return id[this.mapXYto1D(row, col)]==1;
+	   }
+	   
+	   public boolean isFull(int row, int col) {  // is site (row, col) full?
+		   error(row,col);
+		   return uf.connected(0,this.mapXYto1D(row, col));
+		  
+	   } 
+	   
+	   public int numberOfOpenSites()   {  // number of open sites
+		   return nOpenSites;
+	   }
+	   
+	   public boolean percolates()  {   // does the system percolate?
+		   return uf.connected(0, n*n+1);
+	   }         
+
+	public static void main(String[] args) {
+		
+		
+		int N=StdIn.readInt();
+		Percolation per = new Percolation(N);
+		while(!StdIn.isEmpty()) {
+			int p = StdIn.readInt();
+			int q = StdIn.readInt();
+			per.open(p, q);
+			StdOut.println("processing at :" +p+" "+q);
+			if(per.percolates()) {
+				StdOut.println("percolates at :" +p+" "+q);
+			}
+		}
+	}
+
+}

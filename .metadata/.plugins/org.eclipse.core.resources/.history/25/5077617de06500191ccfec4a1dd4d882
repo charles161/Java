@@ -1,0 +1,191 @@
+/******************************************************************************
+ *  Compilation:  javac PercolationVisualizer.java
+ *  Execution:    java PercolationVisualizer input.txt
+ *  Dependencies: Percolation.java
+ *
+ *  This program takes the name of a file as a command-line argument.
+ *  From that file, it
+ *
+ *    - Reads the grid size n of the percolation system.
+ *    - Creates an n-by-n grid of sites (intially all blocked)
+ *    - Reads in a sequence of sites (row i, column j) to open.
+ *
+ *  After each site is opened, it draws full sites in light blue,
+ *  open sites (that aren't full) in white, and blocked sites in black,
+ *  with with site (1, 1) in the upper left-hand corner.
+ *
+ ******************************************************************************/
+
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdDraw;
+
+
+import java.awt.Font;
+
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
+
+import edu.princeton.cs.algs4.StdIn;
+import edu.princeton.cs.algs4.StdOut;
+
+class Percolation {
+		private int nOpenSites=0;
+		private int n=0;
+		private int[] id;
+		WeightedQuickUnionUF uf;
+		
+		 public Percolation(int a) {// create n-by-n grid, with all sites blocked
+			 int c=(a*a)+2;
+				n=a;
+				uf = new WeightedQuickUnionUF(c);
+				this.id = new int[c];
+				for(int i=0;i<c;i++) {
+					this.id[i]=0;
+				}
+		  }
+		
+		private int mapXYto1D(int a, int b) { 
+			return ((n*a)-(n-b));
+		}
+		
+//		private int random() {
+//			return 0;
+//		}
+		private void error(int row,int col) {
+			if(row>n || col>n || row<1 || col<1) throw new IllegalArgumentException("Boundary conditions exceeded");
+		}
+		
+		private void union(int row,int col, int a,int b) {
+			uf.union(this.mapXYto1D(row, col), this.mapXYto1D(row+a, row+b));
+		}
+	 
+	   public void open(int row, int col) {    // open site (row, col) if it is not open already
+		   error(row,col);
+		   nOpenSites++;
+		   //StdOut.println("opens at :" +row+" "+col);
+		   int b=this.mapXYto1D(row, col);
+		   if(id[b]==0) {
+			   id[b]=1; 
+		   }
+		   if(b<=n) {
+			   uf.union(0,b);
+			 StdOut.println("0 at :" +b);
+		   }else if(b<=n*n && b>n*(n-1)) {
+			   uf.union(n*n+1, b);
+				 StdOut.println("bottom at :" +b);
+		   }
+		   if(row+1<=n && id[this.mapXYto1D(row+1, col)]==1) {
+			   union(row,col,1,0);
+		   }
+		   if(col+1<=n && id[this.mapXYto1D(row, col+1)]==1) {
+			   union(row,col,0,1);
+		   }
+		   if(row-1>=1 && id[this.mapXYto1D(row-1, col)]==1) {
+			   union(row,col,-1,0);
+		   }
+		   if(col-1>=1 && id[this.mapXYto1D(row, col-1)]==1) {
+			   union(row,col,0,-1);
+		   }
+		   if(this.percolates()) {
+			   StdOut.println("system percolates");
+		   }
+	   }
+	   
+	   public boolean isOpen(int row, int col) {  // is site (row, col) open?
+		   error(row,col);
+		   return id[this.mapXYto1D(row, col)]==1;
+	   }
+	   
+	   public boolean isFull(int row, int col) {  // is site (row, col) full?
+		   error(row,col);
+		   return uf.connected(0,this.mapXYto1D(row, col));
+	   } 
+	   
+	   public int numberOfOpenSites()   {  // number of open sites
+		   return nOpenSites;
+	   }
+	   
+	   public boolean percolates()  {   // does the system percolate?
+		   return uf.connected(0, n*n+1);
+	   }         
+
+//	public static void main(String[] args) {
+//		int N=StdIn.readInt();
+//		Percolation per = new Percolation(N);
+//		StdOut.println("count at :"+ per.uf.count());
+//		while(!StdIn.isEmpty()) {
+//			int p = StdIn.readInt();
+//			int q = StdIn.readInt();
+//			per.open(p, q);
+//			
+////			if(per.isOpen(p, q)) {
+////				StdOut.println("open at :" +p+" "+q);
+////			}
+//			
+//		}
+//		
+//	}
+
+}
+
+public class PercolationVisualizer {
+
+    // delay in miliseconds (controls animation speed)
+    private static final int DELAY = 100;
+
+    // draw n-by-n percolation system
+    public static void draw(Percolation perc, int n) {
+        StdDraw.clear();
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.setXscale(-0.05 * n, 1.05 * n);
+        StdDraw.setYscale(-0.05 * n, 1.05 * n);   // leave a border to write text
+        StdDraw.filledSquare(n / 2.0, n / 2.0, n / 2.0);
+
+        // draw n-by-n grid
+        int opened = 0;
+        for (int row = 1; row <= n; row++) {
+            for (int col = 1; col <= n; col++) {
+                if (perc.isFull(row, col)) {
+                    StdDraw.setPenColor(StdDraw.BOOK_LIGHT_BLUE);
+                    opened++;
+                }
+                else if (perc.isOpen(row, col)) {
+                    StdDraw.setPenColor(StdDraw.WHITE);
+                    opened++;
+                }
+                else
+                    StdDraw.setPenColor(StdDraw.BLACK);
+                StdDraw.filledSquare(col - 0.5, n - row + 0.5, 0.45);
+            }
+        }
+
+        // write status text
+        StdDraw.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.text(0.25 * n, -0.025 * n, opened + " open sites");
+        if (perc.percolates()) StdDraw.text(0.75 * n, -0.025 * n, "percolates");
+        else StdDraw.text(0.75 * n, -0.025 * n, "does not percolate");
+
+    }
+
+    public static void main(String[] args) {
+        In in = new In(args[0]);      // input file
+        int n = in.readInt();         // n-by-n percolation system
+
+        // turn on animation mode
+        StdDraw.enableDoubleBuffering();
+
+        // repeatedly read in sites to open and draw resulting system
+        Percolation perc = new Percolation(n);
+        draw(perc, n);
+        StdDraw.show();
+        StdDraw.pause(DELAY);
+        while (!in.isEmpty()) {
+            int i = in.readInt();
+            int j = in.readInt();
+            perc.open(i, j);
+            draw(perc, n);
+            StdDraw.show();
+            StdDraw.pause(DELAY);
+        }
+    }
+}
